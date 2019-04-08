@@ -44,16 +44,16 @@ void findWaitingTime(struct Process proc[], int n)
 }
 
 // Function to find the waiting time for all processes
-void findRoundWaitingTime(struct Process proc[], int n, int quantum)
+void findRoundWaitingTime(struct Process proc[],int n, int curr_time, int quantum,int *Ghant,int n2)
 {
-    // Make a copy of burst times bt[] to store remaining burst times.
-    int rem_bt[n];
+    // Make a copy of burst times to store remaining burst times.
+    int rem_bt[n],j = 0;
     for (int i = 0 ; i < n ; i++)
         rem_bt[i] =  proc[i].B_time;
 
-    int t = 0; // Current time
+    int t = curr_time; // Current time
 
-    // Keep traversing processes in round robin manner until all of them are not done.
+    // Keep traversing processes in round robin manner until all of them are finished.
     while (1)
     {
         int done = 1;
@@ -87,6 +87,7 @@ void findRoundWaitingTime(struct Process proc[], int n, int quantum)
                     // As the process gets fully executed make its remaining burst time = 0
                     rem_bt[i] = 0;
                 }
+               Ghant[j+n2] = proc[i].Pid;j++;
             }
         }
 
@@ -117,22 +118,22 @@ void findavgTime(struct Process proc[], int n)
     {
         total_wt = total_wt + proc[i].W_time;
         total_tat = total_tat + proc[i].TaT;
-        printf(" %d\t\t%d\t %d\t\t %d\n",proc[i].Pid,proc[i].B_time,proc[i].W_time,proc[i].TaT);
+        printf("    %d\t\t%d\t\t%d\t\t%d\n",proc[i].Pid,proc[i].B_time,proc[i].W_time,proc[i].TaT);
     }
 
 //    printf("\nAverage waiting time = %f",((float)total_wt / (float)n));
 //    printf("\nAverage turn around time = %f",((float)total_tat / (float)n));
 }
 
-void priorityScheduling(struct Process proc[], int n)
+void priorityScheduling(struct Process proc[], int n,int *Ghant)
 {
     // Sort processes by priority
     bubbleSort(proc,n);
-
-    printf("\nOrder in which processes gets executed \n");
+    for(int i=0;i<n;i++)
+        Ghant[i] = proc[i].Pid;
 
     //Display processes along with all details
-    printf("\nProcesses   Burst time   Waiting time   Turn around time\n");
+    printf("\nProcesses | Burst time | Waiting time | Turn around time\n");
 
     findavgTime(proc, n);
 }
@@ -140,7 +141,7 @@ void priorityScheduling(struct Process proc[], int n)
 int main()
 {
 	int i=0,n;
-	int q1_Size, q2_Size, quantum = 2;
+	int q1_Size, q2_Size, quantum = 2,sum_Burst = 0;
 
 	printf("Enter the number of Processes : ");
 	scanf("%d",&n);
@@ -150,13 +151,13 @@ int main()
 	q1_Size = n;
 	q2_Size = 0;
 
-	printf(" Pid | Burst_time | Priority \n");
-    while(i++ < q1_Size)
+	printf("Pid | Burst_time | Priority \n");
+    for(int i=0;i< q1_Size;i++)
 	{
 	    scanf("%d%d%d",&P_Input[i].Pid,&P_Input[i].B_time,&P_Input[i].Priority);
-		P_Input[i].Num = i+1;
+	    P_Input[i].Num = i+1;
 
-		if (i>0 && (P_Input[i].Priority < P_Input[i-1].Priority))
+		while (i-1>-1 && (P_Input[i].Priority < P_Input[i-1].Priority))
         {
             Q_Input[q2_Size].Num = P_Input[i-1].Num;
             Q_Input[q2_Size].Pid = P_Input[i-1].Pid;
@@ -164,15 +165,24 @@ int main()
             Q_Input[q2_Size].Priority = P_Input[i-1].Priority;
             P_Input[i-1] = P_Input[i];
             q2_Size++;
-            q1_Size--;i--;
+            q1_Size--;
+            i--;
         }
     }
-    printf("%d\t%d\t%d",P_Input[0].Pid,P_Input[1].Pid,Q_Input[0].Pid);
+    for(int i=0;i<q2_Size;i++)
+        sum_Burst += Q_Input[i].B_time;
+    sum_Burst = (sum_Burst/quantum)+1;
+    sum_Burst += q1_Size;
+    int Ghant[sum_Burst];
 
     //Function to find waiting time of all processes
     findWaitingTime(P_Input, q1_Size);
-    priorityScheduling(P_Input, q1_Size);
+    priorityScheduling(P_Input, q1_Size,Ghant);
     // Function to find waiting time of all processes
-    findRoundWaitingTime(Q_Input, q2_Size, quantum);
+    findRoundWaitingTime(Q_Input, q2_Size, P_Input[q1_Size-1].W_time + P_Input[q1_Size-1].B_time, quantum,Ghant,q1_Size);
     findavgTime(Q_Input, q2_Size);
+
+    printf("\nOrder in which processes gets executed \n");
+    for(int j=0;j<sum_Burst-1;j++)
+        printf("P%d ",Ghant[j]);
 }
