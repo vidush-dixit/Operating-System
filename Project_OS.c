@@ -3,7 +3,7 @@
 
 struct Process
 {
-	int Num;                                                                            //Process(Object) Number
+	int Num;                                                                            //Object Number
 	int Pid;                                                                            //Process Id
 	int Priority;                                                                       //Process Priority
 	int B_time;                                                                         //Process Burst Time
@@ -120,9 +120,6 @@ void findavgTime(struct Process proc[], int n)
         total_tat = total_tat + proc[i].TaT;
         printf("    %d\t\t%d\t\t%d\t\t%d\n",proc[i].Pid,proc[i].B_time,proc[i].W_time,proc[i].TaT);
     }
-
-//    printf("\nAverage waiting time = %f",((float)total_wt / (float)n));
-//    printf("\nAverage turn around time = %f",((float)total_tat / (float)n));
 }
 
 void priorityScheduling(struct Process proc[], int n,int *Ghant)
@@ -141,11 +138,14 @@ void priorityScheduling(struct Process proc[], int n,int *Ghant)
 int main()
 {
 	int i=0,j=0,n;
-	int q1_Size, q2_Size, quantum = 2,sum_Burst = 0;
+	int q1_Size, q2_Size, quantum = 2,sum_Burst = 0,tot_Wait = 0,tot_TaT = 0;
+	float avg_Wait,avg_Tat;
 
+    //Taking Input
 	printf("Enter the number of Processes : ");
 	scanf("%d",&n);
 
+    //Creating 2 Process Queues
 	struct Process P_Input[n];
 	struct Process Q_Input[n];
 	q1_Size = 0;
@@ -179,10 +179,13 @@ int main()
         }
     }
 
+    //Printing contents of 1st Queue
     printf("\nQueue 1 with Size(%d): \n",q1_Size);
     for(int i=0;i<q1_Size;i++)
         printf("%d ",P_Input[i].Priority);
-    printf("\nQueue 2 with Size(%d): \n",q2_Size);
+
+    //Printing contents of 2nd Queue
+    printf("\n\nQueue 2 with Size(%d): \n",q2_Size);
     for(int i=0;i<q2_Size;i++)
         printf("%d ",Q_Input[i].Priority);
 
@@ -202,4 +205,21 @@ int main()
     printf("\nOrder in which processes gets executed \n");
     for(int j=0;j<sum_Burst-1;j++)
         printf("P%d ",Ghant[j]);
+
+    for(int i=0;i<q1_Size;i++)
+    {
+        tot_TaT+=P_Input[i].TaT;
+        tot_Wait+=P_Input[i].W_time;
+    }
+    for(int i=0;i<q2_Size;i++)
+    {
+        tot_TaT+=(Q_Input[i].TaT);
+        tot_Wait+=(Q_Input[i].W_time);
+    }
+
+    avg_Tat = (float)tot_TaT / (float)(q1_Size+q2_Size);
+    avg_Wait = (float)tot_Wait / (float)(q1_Size+q2_Size);
+
+    printf("\n\nAverage waiting time = %fs",avg_Wait);
+    printf("\tAverage turn around time = %fs\n",avg_Tat);
 }
