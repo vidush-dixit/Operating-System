@@ -140,7 +140,7 @@ void priorityScheduling(struct Process proc[], int n,int *Ghant)
 
 int main()
 {
-	int i=0,n;
+	int i=0,j=0,n;
 	int q1_Size, q2_Size, quantum = 2,sum_Burst = 0;
 
 	printf("Enter the number of Processes : ");
@@ -148,27 +148,44 @@ int main()
 
 	struct Process P_Input[n];
 	struct Process Q_Input[n];
-	q1_Size = n;
-	q2_Size = 0;
+	q1_Size = 0;
+	q2_Size = n;
 
 	printf("Pid | Burst_time | Priority \n");
-    for(int i=0;i< q1_Size;i++)
+    for(int i=0;i< q2_Size;i++)
 	{
-	    scanf("%d%d%d",&P_Input[i].Pid,&P_Input[i].B_time,&P_Input[i].Priority);
-	    P_Input[i].Num = i+1;
+	    scanf("%d%d%d",&Q_Input[i].Pid,&Q_Input[i].B_time,&Q_Input[i].Priority);
+	    Q_Input[i].Num = i+1;
+    }
 
-		while (i-1>-1 && (P_Input[i].Priority < P_Input[i-1].Priority))
+    // To Differentiate 2 Queues based on Input
+    for(int i=1;i<q2_Size;i++)
+	{
+	    if(Q_Input[i].Priority<Q_Input[i-1].Priority)
         {
-            Q_Input[q2_Size].Num = P_Input[i-1].Num;
-            Q_Input[q2_Size].Pid = P_Input[i-1].Pid;
-            Q_Input[q2_Size].B_time = P_Input[i-1].B_time;
-            Q_Input[q2_Size].Priority = P_Input[i-1].Priority;
-            P_Input[i-1] = P_Input[i];
-            q2_Size++;
-            q1_Size--;
-            i--;
+            P_Input[q1_Size].Num = Q_Input[i].Num;
+            P_Input[q1_Size].Pid = Q_Input[i].Pid;
+            P_Input[q1_Size].B_time = Q_Input[i].B_time;
+            P_Input[q1_Size].Priority = Q_Input[i].Priority;
+            for(int j=i;j<q2_Size;j++)
+            {
+                Q_Input[j].Num = Q_Input[j+1].Num;
+                Q_Input[j].Pid = Q_Input[j+1].Pid;
+                Q_Input[j].B_time = Q_Input[j+1].B_time;
+                Q_Input[j].Priority = Q_Input[j+1].Priority;
+            }
+            q2_Size--;
+            q1_Size++;
         }
     }
+
+    printf("\nQueue 1 with Size(%d): \n",q1_Size);
+    for(int i=0;i<q1_Size;i++)
+        printf("%d ",P_Input[i].Priority);
+    printf("\nQueue 2 with Size(%d): \n",q2_Size);
+    for(int i=0;i<q2_Size;i++)
+        printf("%d ",Q_Input[i].Priority);
+
     for(int i=0;i<q2_Size;i++)
         sum_Burst += Q_Input[i].B_time;
     sum_Burst = (sum_Burst/quantum)+1;
